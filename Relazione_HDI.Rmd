@@ -1,0 +1,390 @@
+---
+title: "Relazione HDI"
+author: "Davide Nonino"
+date: "01/9/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(gganimate)
+library(readr)
+library(plotly)
+library(DT)
+library(gridExtra)
+library(modelr)
+```
+
+## Introduzione
+
+Questo progetto punta a rispondere ai seguenti punti:
+- Andamento dello sviluppo dei Paesi
+* Aspettativa di vita per continente
+* Aspettativa di vita nel tempo e incidenza sull'HDI
+* Andamento e analisi anni medi di scolarizzazione degli adulti
+* Andamento e analisi anni di scolarizzazione previsti
+* Variazione HDI in base al GDP per capita
+
+## Dataset
+
+Variabili presenti nel dataset utilizzato:
+* **Entinty** : nome dello Stato
+* **Code** : codice dello Stato
+* **Region** : continente a cui appartiene lo Stato
+* **Sub_Region** : sotto regione del continente in cui si trova lo Stato 
+* **Year** : anno 
+* **Human_Development_Index** : indice di sviluppo umano dello Stato 
+* **Life_Expectancy** : aspettativa di vita dello Stato
+* **Average_years_schooling** : numero medio di anni in cui le persone di età superiore ai 25 anni hanno partecipato all'istruzione formale dello Stato
+* **Expected_years_of_schooling** : numero di anni di scolarizzazione che un bambino in età di ammissione alla scuola può aspettarsi di ricevere dallo Stato
+* **GDP_per_capita** : PIL pro capite dello Stato
+* **Population** : popolazione dello Stato
+
+```{r }
+HumanDevelopmentIndex <- read_csv("D:/Desktop/uniud materie/primo anno/fondamenti dei dati/Esame data science/HDI/HumanDevelopmentIndex.csv",show_col_types = FALSE)
+
+str(HumanDevelopmentIndex)
+```
+
+## Cos'è l'HDI?
+L'**HDI (Human Development Index)** è un indice (compreso tra 0 e 1) introdotto nel 1990 e utilizzato per stabilire lo sviluppo umano dei vari Stati.
+Viene calcolato in base a:
+**Vita lunga e sana**: misurata dall'aspettativa di vita
+**Istruzione**: misurata dagli anni di scolarizzazione previsti per i bambini e dagli anni medi di scolarizzazione della popolazione adulta
+**Tenore di vita**: reddito nazionale lordo pro capite
+
+```{r}
+HDI <- HumanDevelopmentIndex %>% select(Entity:Human_Development_Index) 
+datatable(HDI)
+```
+
+Ordinando il dataset in base ai valori di HDI registrati possiamo notare come i valori più bassi appartengano tutti a Stati africani mentre i valori più alti soprattutto a Stati europei. 
+In particolare, lo Stato che ha registrato il più basso valore di HDI è il Rwanda con 0.199 nel 1994 a causa di un genocidio durato fino al 1996.Altri Stati con valori molto bassi sono il Mozambique (a causa di una guerra civile),il Niger e il Mali (ribellione che ha interessato entrambi gli Stati).
+Lo Stato che ha registrato più volte il valore più alto è la Norvegia con valori superiori a 0.94 dal 2014 al 2017. Seguono Svizzera, Australia e Irlanda con valori superiori a 0.93. Per l'Asia il primo Stato è Singapore con 0.932 mentre per l'America è il Canada con 0.926.  
+
+## Andamento HDI negli anni
+
+Visualizziamo l'andamento dell'HDI nel periodo 1990-2017 per ogni Stato:
+
+```{r }
+HumanDevelopmentIndexYears <- HDI %>% ggplot(aes(x = Year,y = Human_Development_Index,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + 
+theme_classic() + labs(title = "Andamento HDI negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "HDI") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+
+HumanDevelopmentIndexYears
+
+```
+
+Si nota un miglioramento che sembrerebbe interessare quasi tutti gli Stati. 
+Il valore minimo è passato dallo 0.2 registrato dal Mozambique nel 1990  allo 0.35 registrato dal Niger nel 2017.
+Anche il valore massimo è migliorato passando dallo 0.866 registrato dall'Australia nel 1990 allo 0.953 registrato dalla Norvegia nel 2017. 
+
+```{r}
+# valori anno 1990
+anno90 <- HumanDevelopmentIndex %>% filter(Year == 1990) %>% select(Entity,Code,Region,Human_Development_Index)
+colnames(anno90)[4] <- "HDI1990"
+
+#valori anno 2017
+anno17 <- HumanDevelopmentIndex %>% filter(Year == 2017) %>% select(Entity,Code,Region,Human_Development_Index)
+colnames(anno17)[4] <- "HDI2017"
+
+#unione
+HDIdiff <- inner_join(anno90,anno17,by=c("Code","Entity","Region")) %>% select(Entity,Code,Region,HDI1990,HDI2017) %>% mutate(differenza = HDI2017 - HDI1990)
+
+datatable(HDIdiff)
+```
+
+Nessun Paese sembra aver peggiorato la propria situazione rispetto al 1990 a conferma di un miglioramento globale. Tuttavia, più di qualche Stato che nel 1990 registrava un indice di sviluppo basso non ha migliorato molto la propria situazione. Si nota come i Paesi in questione non appartengono solo all'Africa ma anche all'Asia e all'America.
+In generale il Paese con la crescita più bassa è stato il Lesotho con 0.021 mentre quello con la crescita più alta è stato il Rwanda con 0.274 (considerando i valori bassi registrati nel 1993 a causa del genocidio si può dire che si stia riprendendo bene e velocemente). Gli Stati che hanno avuto una crescita maggiore sembrano appartenere in maggior quantità al continente asiatico e africano.
+
+## HDI nei vari continenti
+
+Dalle prime analisi si è subito notato come i valori più bassi siano stati registrati dagli Stati africani. Vediamo come i valori si distribuiscono nei vari continenti:
+
+```{r } 
+HDIStats <- HumanDevelopmentIndex %>% ggplot(aes(x = Human_Development_Index)) + geom_histogram(binwidth = .01,aes(fill=Region),show.legend = FALSE)+ labs(title = "Valori HDI nei continenti",x = "HDI") + theme(plot.title = element_text(size=16),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_x_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+ggplotly(HDIStats)
+
+```
+
+Da questo grafico notiamo come i valori degli Stati africani variano in un range molto ampio che va dai valori più bassi attorno allo 0.2 fino ai valori più alti 
+attorno allo 0.8. I valori sembrano concentrarsi principalmente nella zona tra 0.3 e 0.6. 
+
+Anche gli Stati asiatici, nonostante valori più alti rispetto a quelli africani, sembrano avere un range molto ampio che va da valori bassi attorno allo 0.35 a valori molto alti attorno allo 0.90. I valori sembrano concentrarsi principalmente tra 0.58 e 0.79.
+
+Gli Stati americani hanno registrato valori in un range che va dai più bassi attorno allo 0.4 ai più alti superiori allo 0.9. I valori sembrano concentrarsi principalmente tra 0.65 e 0.78.
+
+Gli Stati europei hanno un range di valori meno ampio rispetto ai precedenti che va dallo 0.6 fino allo 0.95. I valori sembrano concentrarsi principalmente tra lo 0.72 e lo 0.91.
+
+Infine, gli Stati dell'Oceania possiedono il range minore tra i continenti che va dallo 0.80 allo 0.94.
+
+In generale gli Stati sembrano popolare in maggior quantità l'intervallo tra 0.6 e 0.9.
+
+## HDI nelle sottoregioni dell'Africa 
+
+I valori più bassi oltre che ad appartenere quasi tutti a Stati del continente africano sembrano avere anche in comune la sottoregione. Proviamo a visualizzare la situazione relativa all'Africa: 
+
+```{r }
+HumanDevelopmentIndexAfrica <- HumanDevelopmentIndex %>% filter(Region == "Africa") %>% ggplot(aes(x = reorder(Sub_Region,Human_Development_Index,median),y = Human_Development_Index,fill=Sub_Region)) + geom_boxplot(show.legend = FALSE) + theme_light() + facet_wrap(~ Region) + labs(x = "Sub-Region",y = "HDI") + theme(axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size = 10), axis.text.y   = element_text(size = 10)) + scale_y_continuous(limits = c(0.15,0.9), breaks = seq(0.20,0.8,0.10))
+
+ggplotly(HumanDevelopmentIndexAfrica)
+
+```
+
+L'Africa subsahariana (parte del continente africano situata a sud del Deserto del Sahara) possiede i valori minimi (attorno allo 0.2) registrati nel continente e ha registrato in generale valori più bassi rispetto all'Africa del Nord.Il valore mediano dell'Africa subsahariana (0.45) è inferiore rispetto a quello dell'Africa del Nord (0.63) e sembra avere un range di valori molto più ampio. L'Africa del Nord sembra essere nel complesso più sviluppata ma nonostante questo i valori più alti sono stati registrati nell'Africa subsahariana. 
+
+## Life Expectancy
+
+Il primo fattore per la determinazione dell'HDI di uno Stato è la sua **aspettativa di vita**.
+
+### Situazione degli Stati
+```{r}
+HDI <- HumanDevelopmentIndex %>% select(Entity:Life_Expectancy) 
+datatable(HDI)
+```
+
+Anche per questo fattore le aspetative di vita più basse si registrano in Africa e la più bassa in assoluto appartiene anche questa volta al Rwanda. Le aspettative di vita più alte invece si registrano sopratutto in Asia e in Europa.
+
+### Andamento Life Expectancy negli anni
+
+Vediamo l'andamento dell'aspettativa di vita negli anni per ciascuno Stato:
+
+```{r }
+
+LifeExpectancyYears <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Life_Expectancy,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento Life Expectancy negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Life Expectancy") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(20,90), breaks = seq(30,90,10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+
+LifeExpectancyYears
+
+```
+
+Anche qui, come nel grafico riguardante l'HDI, notiamo un miglioramento che sembra riguardare tutti gli Stati. Il valore più basso è stato toccato nel 1993 dal Rwanda a causa di un genocidio che ha abbassato l'aspettativa di vita a 26.17 anni. Il valore più alto invece appartiene al Giappone che nel 2017 ha registrato un'aspettativa di vita pari a 84.29. Il valore più basso è passato dal 33.41 registrato dal Rwanda nel 1990 al 52.24 registrato dalla Repubblica Centrafricana nel 2017. Il valore più alto è passato dal 79 registrato dal Giappone nel 1990 al 86.29 registrato sempre dal Giappione nel 2017. Si nota che il Giappione ha posseduto il primato per l'aspettativa di vita più alta per tutti e 27 gli anni.
+
+### Life Expectancy nei continenti
+
+Osservando i dati si nota che anche per l'aspettativa di vita gli Stati africani possiedono i valori più bassi. Visualizziamo la distribuzione di questo parametro nei vari continenti:
+
+```{r}
+LifeExpectancyRegion <- HumanDevelopmentIndex %>% ggplot(aes(x = reorder(Region,Life_Expectancy,median),y = Life_Expectancy,fill=Region)) + geom_boxplot(show.legend = FALSE) + theme_light() +  labs(title = "Valori Life Expectancy per continente", x = "Continent", y = "Life Expectancy") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(25,85), breaks = seq(30,80,10)) + scale_fill_manual(values=c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+
+
+ggplotly(LifeExpectancyRegion)
+```
+
+La situazione sembra molto simile rispetto a quella dell'HDI. Gli Stati africani anche in questo caso sembrano avere il range più ampio e registrano i valori più bassi in assoluto.
+Successivamente gli Stati asiatici con valori superiori a quelli degli Stati africani e con un range abbastanza ampio possiedono il valore più alto in assoluto grazie al Giappone.L'America ha un range ancora più stretto e valori concentrati in intervallo più alto rispetto a quelli asiatici nonostante molti outliers con valori inferiori.
+Infine, Stati europei e dell'Oceania possiedono range stretti e con valori più alti rispetto agli altri continenti ma che questa volta non contengono il valore massimo in assoluto.
+Africa possiede il valore mediano più basso mentre l'Oceania possiede quello più alto.
+
+### HDI vs Life Expectancy 
+
+Verifichiamo come lo sviluppo di uno Stato varia in base alla variazione della sua aspettativa di vita.
+
+```{r}
+HDIvsLE <- HumanDevelopmentIndex %>% ggplot(aes(x=Life_Expectancy,y = Human_Development_Index,size = Population,color = Region)) + geom_point(alpha=1/2) + transition_time(Year) + shadow_wake(0.25, wrap = FALSE) + labs(title = "HDI vs Life Expectancy",subtitle = "Periodo: 1990-2017", x = "Life Expectancy", y = "HDI") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x = element_text(size =14),axis.title.y  = element_text(size =14),axis.text.x   = element_text(size =12), axis.text.y= element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_x_continuous(limits = c(20,90), breaks = seq(30,90,10))+ scale_color_manual(values=c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+gif <- animate(HDIvsLE)
+gif
+```
+
+Dal grafico si nota come l'aumentare dell'aspettativa di vita comporti un aumento dell'HDI. La tendenza per tutti gli Stati è quella di aumentare entrambi gli indici. Infatti, sembra che tutti gli Stati stiano cercando di raggiungere l'angolo in alto a destra con i Paesi appartenenti all'Europa e all'Oceania a guidare il gruppo. 
+A metà strada si posizionano la maggior parte dei Paesi americani e asiatici mentre si notano gli Stati africani in fondo alla coda che inseguono gli altri continenti.
+Da sottolineare come i Paesi africani abbiano recuperato molto terreno dal 2000 in poi.
+
+
+Vediamo quanto la life expectancy incide sull'HDI:
+
+```{r}
+
+Africa <- HumanDevelopmentIndex %>% filter(Region == "Africa") 
+Americas <- HumanDevelopmentIndex %>% filter(Region == "Americas") 
+Europe <- HumanDevelopmentIndex %>% filter(Region == "Europe") 
+Asia <- HumanDevelopmentIndex %>% filter(Region == "Asia") 
+Oceania <- HumanDevelopmentIndex %>% filter(Region == "Oceania")
+
+
+modAfrica <- lm(Human_Development_Index ~ Life_Expectancy,Africa)
+
+Africaml <- ggplot(Africa,aes(Life_Expectancy,Human_Development_Index)) + geom_point(alpha=0.5) + geom_abline(intercept=modAfrica$coefficients[1],slope =modAfrica$coefficients[2],color="red",size=1) + labs(title = "Africa",x = "Life Expectancy",y="HDI") + theme(plot.title = element_text(size=13),axis.title.x  = element_text(size = 9 ),axis.title.y  = element_text(size =9), axis.text.x   = element_text(size =10), axis.text.y = element_text(size =10))
+
+modAmericas <- lm(Human_Development_Index ~ Life_Expectancy,Americas)
+
+Americasml <- ggplot(Americas,aes(Life_Expectancy,Human_Development_Index)) + geom_point(alpha=0.5) + geom_abline(intercept=modAmericas$coefficients[1],slope =modAmericas$coefficients[2],color="red",size=1)+ labs(title = "Americas",x = "Life Expectancy",y="HDI") + theme(plot.title = element_text(size=13),axis.title.x  = element_text(size = 9 ),axis.title.y  = element_text(size =9), axis.text.x   = element_text(size =10), axis.text.y   = element_text(size =10))
+
+modEurope <- lm(Human_Development_Index ~ Life_Expectancy,Europe)
+
+Europeml <- ggplot(Europe,aes(Life_Expectancy,Human_Development_Index)) + geom_point(alpha=0.5) + geom_abline(intercept=modEurope$coefficients[1],slope =modEurope$coefficients[2],color="red",size=1)+ labs(title = "Europe",x = "Life Expectancy",y="HDI") + theme(plot.title = element_text(size=13),axis.title.x  = element_text(size = 9 ),axis.title.y  = element_text(size =9), axis.text.x   = element_text(size =10), axis.text.y   = element_text(size =10))
+
+modAsia <- lm(Human_Development_Index~ Life_Expectancy,Asia)
+
+Asiaml <- ggplot(Asia,aes(Life_Expectancy,Human_Development_Index)) + geom_point(alpha=0.5) + geom_abline(intercept=modAsia$coefficients[1],slope =modAsia$coefficients[2],color="red",size=1) + labs(title = "Asia",x = "Life Expectancy",y="HDI") + theme(plot.title = element_text(size=13),axis.title.x  = element_text(size = 9 ),axis.title.y  = element_text(size =9), axis.text.x   = element_text(size =10), axis.text.y   = element_text(size =10))
+
+modOceania <- lm(Human_Development_Index ~ Life_Expectancy,Oceania)
+
+Oceaniaml <- ggplot(Oceania,aes(Life_Expectancy,Human_Development_Index)) + geom_point(alpha=0.5) + geom_abline(intercept=modOceania$coefficients[1],slope =modOceania$coefficients[2],color="red",size=1)+ labs(title = "Oceania",x = "Life Expectancy",y="HDI") + theme(plot.title = element_text(size=13),axis.title.x  = element_text(size = 9 ),axis.title.y  = element_text(size =9), axis.text.x   = element_text(size =10), axis.text.y   = element_text(size =10))
+
+grid.arrange(
+Africaml,
+Europeml,
+Americasml,
+Asiaml,
+Oceaniaml,
+nrow=2, ncol = 3)
+```
+
+Tutti i continenti sembrano seguire bene il modello lineare. Si può notare però come, soprattutto per l'Africa e l'Europa, diversi Paesi a parità di aspettativa di vita abbiano ottenuto un valore di HDI molto diverso. Asia e Oceania sembrano essere quelle che seguono meglio il modello. La minore correlazione sembra verificarsi in Africa.
+
+Calcoliamo ora i gradi di correlazione:
+
+### Coefficiente di determinazione
+```{r}
+continents <- c("Africa","Europe","Americas","Asia","Oceania")
+
+
+DeterminationCoefficient <- c(summary(modAfrica)$r.squared,summary(modEurope)$r.squared,summary(modAmericas)$r.squared,summary(modAsia)$r.squared,summary(modOceania)$r.squared)
+
+Determination <- data.frame(continents,DeterminationCoefficient)
+
+DC <- ggplot(Determination,aes(x=continents,y=DeterminationCoefficient,fill=continents)) + geom_col() + labs(title = "Coefficiente di determinazione",x = "Continent",y="Value") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=10),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0,1), breaks = seq(0,1,.25))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+ggplotly(DC)
+```
+
+Per tutti i continenti sembra esserci correlazione ma con valori differenti. L'Africa registra il valore minore pari a 0.59 come da aspettativa. Successivamente Europa e America rispettivamente con 0.71 e 0.74. Per l'Asia si registra una buona correlazione con 0.82 mentre per l'Oceania un'ottima correlazione con il valore più alto pari a 0.94.
+
+### Coefficiente di Pearson
+```{r}
+PearsonValue <- c(cor(Africa$Human_Development_Index,Africa$Life_Expectancy),cor(Europe$Human_Development_Index,Europe$Life_Expectancy),cor(Americas$Human_Development_Index,Americas$Life_Expectancy),cor(Asia$Human_Development_Index,Asia$Life_Expectancy),cor(Oceania$Human_Development_Index,Oceania$Life_Expectancy))
+
+
+Pearson <- data.frame(continents,PearsonValue)
+
+Prs <- ggplot(Pearson,aes(x=continents,y=PearsonValue,fill=continents)) + geom_col() + theme_bw() + labs(title = "Coefficiente di Pearson",x = "Continent",y="Value") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=10),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0,1), breaks = seq(0,1,.25))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+
+ggplotly(Prs)
+```
+
+Per tutti i continenti c'è correlazione positiva.Asia e Oceania ottengono i valori più alti superiori allo 0.9 e quindi correlazione maggiore. Europa e America superano lo 0.83 mentre l'Africa con 0.77 conferma una correlazione minore.
+
+In Asia e Oceania una variazione dell'aspettativa di vita crea una variazione maggiore dell'HDI rispetto agli altri continenti.
+Nell'Africa una variazione dell'aspettativa di vita crea una variazione minore.
+
+## Istruzione 
+
+Il secondo fattore importante per la determinazione dell'HDI è l'**istruzione** che è stato uno dei motori dello sviluppo integrale.
+L'istruzione viene considerata un diritto fondamentale e quasi tutti gli Stati stanno cercando di garantire sempre di più un'istruzione di alta qualità. In alcuni Paesi è anche considerato un dovere in quanto vi è richiesto un numero di anni obbligatorio di frequenza.
+
+```{r}
+Schooling <- HumanDevelopmentIndex %>% select(Entity:Region,Year,Average_years_schooling,Expected_years_of_schooling)
+datatable(Schooling)
+```
+
+I valori più bassi riguardanti gli **anni medi di scolarizzazione degli adulti** si registrano soprattutto in Africa e in Asia con tanti Paesi che registrano un valore inferiore ad 1 anno.
+I valori più alti appartengono all'Europa e all'America (specialmente agli Stati Uniti e al Canada) e si aggirano attorno ai 14 anni.
+
+I valori più bassi riguardanti gli **anni di scolarizzazione previsti** si registrano prevalentemente in Africa sempre con valori attorno ai 2 anni (rilevati soprattutto in Niger e Mali). I valori più alti appartengono all'Oceania con Australia e Nuova Zelanda che superano la soglia dei 20 anni. Successivamente l'Europa con valori che si aggirano attorno ai 19 anni.
+
+
+### Anni medi di scolarizzazione 
+
+La prima componente dell'istruzione è rappresentata dal numero medio di anni di scolarizzazione ricevuti dalla popolazione adulta (età >= 25)
+
+```{r}
+AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Average_years_schooling,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni medi di scolarizzazione negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Average years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+ scale_y_continuous(limits = c(0,15), breaks = seq(0,15,5))  + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+
+AverageSchoolingYear
+
+```
+
+La situazione, a parte per qualche Stato, sembra essere migliorata nel tempo ma non di molto. Nel 1990 i valori inferiori erano prossimi allo 0 e sono aumentati fino a raggiungere nel 2017 valori superiori ai 2 anni con un solo Paese fermo a 1.5. Anche i valori superiori sono aumentati di poco passando da circa 12 anni (Stati Uniti) nel 1990 ai 14 (Germania) del 2017. 
+
+
+#### Valori per Continente
+```{r}
+
+AverageSchooling <- HumanDevelopmentIndex %>% ggplot(aes(x = reorder(Region,Average_years_schooling,median),y = Average_years_schooling,fill=Region)) +
+  geom_boxplot(show.legend = FALSE) + theme_light() + labs(title = "Anni medi di scolarizzazione",subtitle="Numero medio di anni in cui le persone di età superiore ai 25 anni hanno partecipato all'istruzione formale",x = "Continent",y="Average years of Schooling") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=10),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0,17), breaks = seq(5,15,5))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+ggplotly(AverageSchooling)
+```
+
+Dal grafico si nota come l'Asia e l'Africa registrino un ampio range di valori. I minimi toccati dai due continenti sono rispettivamente 0.2 (Yemen) e 0.6 (Niger). Nonostante l'ampio range e i valori molto bassi registrati l'Asia possiede un valore mediano uguale all'America e un valore massimo registrato di poco inferiore. Anche i valori dei Paesi dell'America fanno registrare un ampio range con Stati Uniti e Canada che possiedono i valori maggiori.
+L'Europa e l'Oceania anche per questo fattore possiedono valori maggiori rispetto agli altri continenti a conferma di uno sviluppo generale maggiore anche riguardante l'istruzione.
+Anche qui l'Africa possiede il valore mediano più basso mentre l'Oceania possiede il più alto.
+
+### Anni di scolarizzazione previsti
+```{r}
+
+AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Expected_years_of_schooling,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni di scolarizzazione previsti negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Expected years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+ scale_y_continuous(limits = c(0,25), breaks = seq(0,25,5))  + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+
+AverageSchoolingYear
+```
+
+Dal grafico si nota un miglioramento generale maggiore rispetto all'andamento avuto dagli anni medi di scolarizzazione questo perchè nella maggior parte dei Paesi le riforme riguardanti l'istruzione sono state effettuate recentemente creando una grande differenza tra i più giovani che hanno ricevuto una buona istruzione e i più anziani che praticamente non l'hanno ricevuta.
+Dal grafico emerge anche l'aumento avuto dall'Australia tra il 2014 e il 2015 che ha completamente staccato gli altri Paesi.
+I valori minimi sono passati dai 2 anni registrati in Mali nel 1990 ai 5 registrati dal Niger nel 2017. Si segnala la ripresa avuta dal Mali che nel 2017 ha registrato un valore attorno ai 7 anni. I valori più alti sono passati dai circa 17 anni ai 23 dell'Australia. Il secondo valore più alto registrato nel 2017 si aggira attorno ai 19 anni.
+
+
+#### Valori per continente
+
+```{r}
+ExpectedYearSchooling <- HumanDevelopmentIndex %>% ggplot(aes(x = reorder(Region,Expected_years_of_schooling,median),y = Expected_years_of_schooling,fill=Region)) +
+  geom_boxplot(show.legend = FALSE) + theme_light() + labs(title = "Anni di scolarizzazione previsti",subtitle="numero di anni di scolarizzazione che un bambino in età di ammissione alla scuola può aspettarsi di ricevere",x = "Continent",y="Expected years of Schooling") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=10),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(2,23), breaks = seq(5,20,5))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+ggplotly(ExpectedYearSchooling)
+
+```
+
+I valori dei Paesi del continente africano variano in un range molto ampio con un valore mediano molto basso (il più basso tra i continenti) e registra i valori più bassi a livello globale.
+L'Asia possiede un valore mediano maggiore rispetto a quello africano ma inferiore a quello dell'America. America che registra degli outliers verso il basso. L'Europa possiede buoni valori ma la differenza con l'Oceania è molto alta.
+
+
+## GDP per capita
+
+Prima dell'HDI veniva usato il GDP come indice per individuare lo stato di sviluppo di un Paese con il problema che misurava solo la capacità produttiva di un Paese e non il benessere generale (aspettativa di vita, istruzione,...). 
+Al contrario l'HDI tiene conto più della qualità della vita rispetto alla capacità produttiva del Paese considerando istruzione e salute più importanti.
+
+### GDP per capita vs HDI
+
+Andamento HDI in base ai valori del GDP per capita
+
+```{r}
+HDIvsGDP <- HumanDevelopmentIndex %>% ggplot(aes(x=GDP_per_capita,y = Human_Development_Index,size = Population,color = Region)) + geom_point(alpha=1/2) + labs(title = "HDI vs GDP",subtitle = "Periodo: 1990-2017", x = "GDP per capita", y = "HDI") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x = element_text(size =14),axis.title.y  = element_text(size =14),axis.text.x   = element_text(size =12), axis.text.y= element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10))+ scale_color_manual(values=c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+
+HDIvsGDP
+```
+
+La ricchezza non sembra influenzare troppo i valori dell'HDI in quanto si nota che, a parità di GDP, Paesi diversi ottengono valori di sviluppo diversi. I Paesi africani sembrano avere bassi valori di HDI e altrettanto bassi valori di GDP. L'America e l'Europa possiedono buoni valori per entrambi i fattori con un GDP che sembra variare in un range tra 15000 e 50000 con qualche Paese che supera il limite superiore( Novergia,Svizzera e Lussemburgo per l'Europa, Stati Uniti per l'America). I Paesi più ricchi appartengono all'Asia e sono Qatar,Bahrain e Arabia. Nonostante i valori di GDP molto alti i valori di HDI sono buoni ma sono i più alti neanche considerando solo il contintente di appartenenza (sembrano aggirarsi attorno allo 0.85 mentre il Giappone o Singapore con la metà del GDP superano la soglia del 0.9).
+
+## Conclusioni
+
+Tutti gli Stati dei vari continenti sembrano essere in costante sviluppo.A testimonianza di questo si può notare come per tutti i fattori considerati durante l'analisi i valori più bassi siano stati registrati attorno agli anni più lontani mentre quasi tutti i valori più alti sono stati registrati negli anni più recenti.
+
+Restano comunque delle differenze importanti tra continenti in quanto, per esempio, molti Paesi africani possiedono ancora oggi un indice di sviluppo inferiore allo 0.5 (per esempio il Niger registra uno 0.34). Le disparità sono molto evidenti anche nei vari fattori che influenzano l'HDI. Sia per quanto riguarda l'aspettativa di  vita sia per l'istruzione gli Stati africani continuano ad occupare per lo più gli ultimi posti.I dati restano in sviluppo soprattutto per quanto riguarda l'aspettativa di vita. Sempre più Paesi hanno accesso ad importanti innovazioni mediche (vaccinazioni,antibiotici,...) e continuano a migliorare l'assistenza sanitaria garantendo una sempre minore mortalità infantile che incide molto negativamente sull'aspettativa di vita, specialmente dei Paesi più poveri. 
+
+Anche l'Asia presenta molte differenze tra i Paesi al suo interno. Possiede sia Stati molto ricchi sia Stati molto poveri. Possiede Stati con i più alti valori di sviluppo e di aspettativa di vita e allo stesso tempo alcuni con gli indici di istruzione e di sviluppo più bassi.
+
+L'America sembra essere su una buona via di sviluppo. Gli Stati Uniti e il Canada risultano essere gia ben sviluppati mentre i Paesi per lo più appartenenti all'America Latina registrano già buoni valori ma sono ancora in fase di sviluppo. 
+
+Discorso diverso per l'Europa e l'Oceania che sembrano essere ben sviluppate sotto tutti gli aspetti considerati e inoltre non presentano grosse differenze tra i propri Stati. Restano anche questi continenti in costante miglioramento.
+
+
+Infine, un miglioramento globale sembra interessare soprattutto l'istruzione a cui sempre più giovani hanno accesso aumentando la percentuale delle persone alfabetizzate. Anche qui restano ancora delle differenze importanti tra i vari Paesi (basti pensare che nel 2017 si ha avuto una differenza tra il valore massimo e il valore minimo di anni di scolarizzazione previsti di circa 20 anni). La differenza principale si nota considerando gli anni di scolarizzazione media di un adulto in quanto riguarda prevalentemente la situazione relativa ad anni più lontani e di conseguenza riforme sull'istruzione recenti non hanno effetto immediato su questo parametro.
+
+
+
+
+
+
+
