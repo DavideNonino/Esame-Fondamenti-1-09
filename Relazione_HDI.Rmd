@@ -24,7 +24,7 @@ library(modelr)
 ## Introduzione
 
 Questo progetto punta a rispondere ai seguenti punti:
-- Andamento dello sviluppo dei Paesi
+* Andamento dello sviluppo dei Paesi
 * Aspettativa di vita per continente
 * Aspettativa di vita nel tempo e incidenza sull'HDI
 * Andamento e analisi anni medi di scolarizzazione degli adulti
@@ -34,6 +34,7 @@ Questo progetto punta a rispondere ai seguenti punti:
 ## Dataset
 
 Variabili presenti nel dataset utilizzato:
+
 * **Entinty** : nome dello Stato
 * **Code** : codice dello Stato
 * **Region** : continente a cui appartiene lo Stato
@@ -55,9 +56,10 @@ str(HumanDevelopmentIndex)
 ## Cos'è l'HDI?
 L'**HDI (Human Development Index)** è un indice (compreso tra 0 e 1) introdotto nel 1990 e utilizzato per stabilire lo sviluppo umano dei vari Stati.
 Viene calcolato in base a:
-**Vita lunga e sana**: misurata dall'aspettativa di vita
-**Istruzione**: misurata dagli anni di scolarizzazione previsti per i bambini e dagli anni medi di scolarizzazione della popolazione adulta
-**Tenore di vita**: reddito nazionale lordo pro capite
+
+* **Vita lunga e sana**: misurata dall'aspettativa di vita
+* **Istruzione**: misurata dagli anni di scolarizzazione previsti per i bambini e dagli anni medi di scolarizzazione della popolazione adulta
+* **Tenore di vita**: reddito nazionale lordo pro capite
 
 ```{r}
 HDI <- HumanDevelopmentIndex %>% select(Entity:Human_Development_Index) 
@@ -73,9 +75,9 @@ Lo Stato che ha registrato più volte il valore più alto è la Norvegia con val
 Visualizziamo l'andamento dell'HDI nel periodo 1990-2017 per ogni Stato:
 
 ```{r }
-HumanDevelopmentIndexYears <- HDI %>% ggplot(aes(x = Year,y = Human_Development_Index,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + 
+HumanDevelopmentIndexYears <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Human_Development_Index,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + 
 theme_classic() + labs(title = "Andamento HDI negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "HDI") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3)) 
 
 HumanDevelopmentIndexYears
 
@@ -84,6 +86,15 @@ HumanDevelopmentIndexYears
 Si nota un miglioramento che sembrerebbe interessare quasi tutti gli Stati. 
 Il valore minimo è passato dallo 0.2 registrato dal Mozambique nel 1990  allo 0.35 registrato dal Niger nel 2017.
 Anche il valore massimo è migliorato passando dallo 0.866 registrato dall'Australia nel 1990 allo 0.953 registrato dalla Norvegia nel 2017. 
+
+## Minor cambiamento
+I 20 Stati che dal 1990 al 2017 hanno avuto il **minor** aumento appartengono a:
+
+* 45% Africa
+* 20% Europa
+* 15% Asia
+* 15% America
+* 5% Oceania 
 
 ```{r}
 # valori anno 1990
@@ -95,13 +106,43 @@ anno17 <- HumanDevelopmentIndex %>% filter(Year == 2017) %>% select(Entity,Code,
 colnames(anno17)[4] <- "HDI2017"
 
 #unione
-HDIdiff <- inner_join(anno90,anno17,by=c("Code","Entity","Region")) %>% select(Entity,Code,Region,HDI1990,HDI2017) %>% mutate(differenza = HDI2017 - HDI1990)
+HDIdiff <- inner_join(anno90,anno17,by=c("Code","Entity","Region")) %>% select(Entity,Region,HDI1990,HDI2017) %>% mutate(differenza = HDI2017 - HDI1990) %>% arrange(differenza) %>% head(20)
+colnames(HDIdiff)[c(1,2,5)] <- c("State","Continent","difference")
 
-datatable(HDIdiff)
+diff <- HDIdiff %>% ggplot(aes(y = reorder(State,difference,min), x=difference,fill=State)) + geom_col(show.legend = FALSE)  + 
+theme_grey() + labs(title = "Minor aumento HDI",subtitle = "Periodo 1990-2017", x = "Difference", y = "State") + theme( plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size = 9))
+
+diff
+```
+
+I 20 Stati che dal 1990 al 2017 hanno avuto il **maggior** aumento appartengono a:
+
+* 55% Asia
+* 45% Africa 
+
+```{r}
+# valori anno 1990
+anno90 <- HumanDevelopmentIndex %>% filter(Year == 1990) %>% select(Entity,Code,Region,Human_Development_Index)
+colnames(anno90)[4] <- "HDI1990"
+
+#valori anno 2017
+anno17 <- HumanDevelopmentIndex %>% filter(Year == 2017) %>% select(Entity,Code,Region,Human_Development_Index)
+colnames(anno17)[4] <- "HDI2017"
+
+#unione
+HDIdiff <- inner_join(anno90,anno17,by=c("Code","Entity","Region")) %>% select(Entity,Region,HDI1990,HDI2017) %>% mutate(differenza = HDI2017 - HDI1990) %>% arrange(desc(differenza)) %>% head(20)
+colnames(HDIdiff)[c(1,2,5)] <- c("State","Continent","difference")
+
+diff <- HDIdiff %>% ggplot(aes(y = reorder(State,difference,min), x=difference,fill=State)) + geom_col(show.legend = FALSE)  + 
+theme_grey() + labs(title = "Maggior aumento HDI",subtitle = "Periodo 1990-2017", x = "Difference", y = "State") + theme( plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size = 9)) + scale_x_continuous(limits = c(0,0.3), breaks=seq(0,0.3,0.1))
+
+diff
 ```
 
 Nessun Paese sembra aver peggiorato la propria situazione rispetto al 1990 a conferma di un miglioramento globale. Tuttavia, più di qualche Stato che nel 1990 registrava un indice di sviluppo basso non ha migliorato molto la propria situazione. Si nota come i Paesi in questione non appartengono solo all'Africa ma anche all'Asia e all'America.
-In generale il Paese con la crescita più bassa è stato il Lesotho con 0.021 mentre quello con la crescita più alta è stato il Rwanda con 0.274 (considerando i valori bassi registrati nel 1993 a causa del genocidio si può dire che si stia riprendendo bene e velocemente). Gli Stati che hanno avuto una crescita maggiore sembrano appartenere in maggior quantità al continente asiatico e africano.
+In generale il Paese con la crescita più bassa è stato il Lesotho con 0.021 mentre quello con la crescita più alta è stato il Rwanda con 0.274 (considerando i valori bassi registrati nel 1993 a causa del genocidio si può dire che si stia riprendendo bene e velocemente). Gli Stati che hanno avuto una crescita maggiore sembrano appartenere in maggior quantità al continente asiatico e africano che possono essere considerati ancora in via di sviluppo.
 
 ## HDI nei vari continenti
 
