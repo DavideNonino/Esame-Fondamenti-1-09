@@ -406,7 +406,7 @@ HDIvsGDP <- HumanDevelopmentIndex %>% ggplot(aes(x=GDP_per_capita,y = Human_Deve
 HDIvsGDP
 ```
 
-La ricchezza non sembra influenzare troppo i valori dell'HDI in quanto si nota che, a parità di GDP, Paesi diversi ottengono valori di sviluppo diversi. I Paesi africani sembrano avere bassi valori di HDI e altrettanto bassi valori di GDP. L'America e l'Europa possiedono buoni valori per entrambi i fattori con un GDP che sembra variare in un range tra 15000 e 50000 con qualche Paese che supera il limite superiore( Novergia,Svizzera e Lussemburgo per l'Europa, Stati Uniti per l'America). I Paesi più ricchi appartengono all'Asia e sono Qatar,Bahrain e Arabia. Nonostante i valori di GDP molto alti i valori di HDI sono buoni ma sono i più alti neanche considerando solo il contintente di appartenenza (sembrano aggirarsi attorno allo 0.85 mentre il Giappone o Singapore con la metà del GDP superano la soglia del 0.9).
+La ricchezza non sembra influenzare troppo i valori dell'HDI in quanto si nota che, a parità di GDP, Paesi diversi ottengono valori di sviluppo diversi. I Paesi africani sembrano avere bassi valori di HDI e altrettanto bassi valori di GDP. L'America e l'Europa possiedono buoni valori per entrambi i fattori con un GDP che sembra variare in un range tra 15000 e 50000 con qualche Paese che supera il limite superiore( Novergia,Svizzera e Lussemburgo per l'Europa, Stati Uniti per l'America). I Paesi più ricchi appartengono all'Asia e sono Qatar,Bahrain e Arabia. Nonostante i valori di GDP molto alti i valori di HDI sono buoni ma non sono i più alti neanche considerando solo il solo continente di appartenenza (sembrano aggirarsi attorno allo 0.85 mentre il Giappone o Singapore con la metà del GDP superano la soglia del 0.9).
 
 ## Conclusioni
 
