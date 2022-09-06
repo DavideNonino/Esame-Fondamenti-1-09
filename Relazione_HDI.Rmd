@@ -156,7 +156,7 @@ ggplotly(HDIStats)
 ```
 
 Da questo grafico notiamo come i valori degli Stati africani variano in un range molto ampio che va dai valori più bassi attorno allo 0.2 fino ai valori più alti 
-attorno allo 0.8. I valori sembrano concentrarsi principalmente nella zona tra 0.3 e 0.6. 
+attorno allo 0.8. I valori sembrano concentrarsi principalmente nella zona tra 0.4 e 0.5. 
 
 Anche gli Stati asiatici, nonostante valori più alti rispetto a quelli africani, sembrano avere un range molto ampio che va da valori bassi attorno allo 0.35 a valori molto alti attorno allo 0.90. I valori sembrano concentrarsi principalmente tra 0.58 e 0.79.
 
