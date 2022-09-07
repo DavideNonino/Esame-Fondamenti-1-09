@@ -313,9 +313,8 @@ Il livello di istruzione di uno Stato viene calcolato tramite due parametri:
 ## Anni medi di scolarizzazione
 
 Numero **medio** di anni in cui le persone di età superiore ai 25 anni hanno partecipato all'istruzione formale.
-Le persone più anziane dei paesi più poveri o in via di sviluppo incidono **negativamente** su questo fattore.
 
-Il miglioramento è lieve perchè i risultati delle riforme riguardanti l'istruzione richiedono tempo per essere visibili in questo fattore.
+Si nota un **lieve miglioramento** generale.
 
 ```{r}
 AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Average_years_schooling,color=Region)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni medi di scolarizzazione negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Average years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
@@ -326,12 +325,12 @@ AverageSchoolingYear
 ```
 
 
-Nonostante l'Africa registri valori molto bassi, questa volta il valore **più basso** appartiene ad un Paese asiatico.
-
-
 ## Anni previsti di scolarizzazione
 
 Numero di anni di scolarizzazione che un bambino in età di ammissione alla scuola può aspettarsi di ricevere.
+
+Nonostante un **miglioramento** generale restano importanti differenze tra i vari continenti.
+
 
 ```{r}
 
@@ -340,11 +339,6 @@ axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+
 
 AverageSchoolingYear
 ```
-
-Il diritto all'istruzione è un diritto fondamentale e tutti i paesi stanno cercando di fornire un servizio di alta qualità e accessibile a tutti.
-Restano ancora importanti **differenze** nonostante un miglioramento generale.
-
-La differenza tra l'Oceania e il resto dei continenti è **molto ampia**. 
 
 
 # HDI vs GDP
