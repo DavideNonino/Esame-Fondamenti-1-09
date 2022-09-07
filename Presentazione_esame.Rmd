@@ -87,9 +87,9 @@ colnames(anno17)[4] <- "HDI2017"
 HDIdiff <- inner_join(anno90,anno17,by=c("Code","Entity","Region")) %>% select(Entity,Region,HDI1990,HDI2017) %>% mutate(differenza = HDI2017 - HDI1990) %>% arrange(differenza) %>% head(20)
 colnames(HDIdiff)[c(1,2,5)] <- c("State","Continent","difference")
 
-diff <- HDIdiff %>% ggplot(aes(y = reorder(State,difference,min), x=difference,fill=State)) + geom_col(show.legend = FALSE)  + 
+diff <- HDIdiff %>% ggplot(aes(y = reorder(State,difference,min), x=difference,fill=Continent)) + geom_col(show.legend = TRUE)  + 
 theme_grey() + labs(title = "Minor aumento HDI",subtitle = "Periodo 1990-2017", x = "", y = "State") + theme( plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size = 9))
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size = 9)) + scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 diff
 ```
@@ -114,9 +114,9 @@ colnames(anno17)[4] <- "HDI2017"
 HDIdiff <- inner_join(anno90,anno17,by=c("Code","Entity","Region")) %>% select(Entity,Region,HDI1990,HDI2017) %>% mutate(differenza = HDI2017 - HDI1990) %>% arrange(desc(differenza)) %>% head(20)
 colnames(HDIdiff)[c(1,2,5)] <- c("State","Continent","difference")
 
-diff <- HDIdiff %>% ggplot(aes(y = reorder(State,difference,min), x=difference,fill=State)) + geom_col(show.legend = FALSE)  + 
+diff <- HDIdiff %>% ggplot(aes(y = reorder(State,difference,min), x=difference,fill=Continent)) + geom_col(show.legend = TRUE)  + 
 theme_grey() + labs(title = "Maggior aumento HDI",subtitle = "Periodo 1990-2017", x = "", y = "State") + theme( plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size = 9)) + scale_x_continuous(limits = c(0,0.3), breaks=seq(0,0.3,0.1))
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size = 9)) + scale_x_continuous(limits = c(0,0.3), breaks=seq(0,0.3,0.1))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 diff
 ```
@@ -328,14 +328,6 @@ AverageSchoolingYear
 
 Nonostante l'Africa registri valori molto bassi, questa volta il valore **più basso** appartiene ad un Paese asiatico.
 
-```{r}
-
-AverageSchooling <- HumanDevelopmentIndex %>% ggplot(aes(x = reorder(Region,Average_years_schooling,median),y = Average_years_schooling,fill=Region)) +
-  geom_boxplot(show.legend = FALSE) + theme_light() + labs(title = "Anni medi di scolarizzazione per continente",subtitle="Numero medio di anni in cui le persone di età superiore ai 25 anni hanno partecipato all'istruzione formale",x = "Continent",y="Average years of Schooling") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=10),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0,17), breaks = seq(5,15,5))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
-
-ggplotly(AverageSchooling)
-```
-
 
 ## Anni previsti di scolarizzazione
 
@@ -353,16 +345,6 @@ Il diritto all'istruzione è un diritto fondamentale e tutti i paesi stanno cerc
 Restano ancora importanti **differenze** nonostante un miglioramento generale.
 
 La differenza tra l'Oceania e il resto dei continenti è **molto ampia**. 
-
-```{r}
-ExpectedYearSchooling <- HumanDevelopmentIndex %>% ggplot(aes(x = reorder(Region,Expected_years_of_schooling,median),y = Expected_years_of_schooling,fill=Region)) +
-  geom_boxplot(show.legend = FALSE) + theme_light() + labs(title = "Anni di scolarizzazione previsti",subtitle="numero di anni di scolarizzazione che un bambino in età di ammissione alla scuola può aspettarsi di ricevere",x = "Continent",y="Expected years of Schooling") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=10),axis.title.x  = element_text(size = 14 ),axis.title.y  = element_text(size =14), axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(2,23), breaks = seq(5,20,5))+ scale_fill_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
-
-ggplotly(ExpectedYearSchooling)
-
-```
-
-
 
 
 # HDI vs GDP

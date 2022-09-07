@@ -24,6 +24,7 @@ library(modelr)
 ## Introduzione
 
 Questo progetto punta a rispondere ai seguenti punti:
+
 * Andamento dello sviluppo dei Paesi
 * Aspettativa di vita per continente
 * Aspettativa di vita nel tempo e incidenza sull'HDI
@@ -75,9 +76,9 @@ Lo Stato che ha registrato più volte il valore più alto è la Norvegia con val
 Visualizziamo l'andamento dell'HDI nel periodo 1990-2017 per ogni Stato:
 
 ```{r }
-HumanDevelopmentIndexYears <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Human_Development_Index,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + 
+HumanDevelopmentIndexYears <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Human_Development_Index,color=Region)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = TRUE) + 
 theme_classic() + labs(title = "Andamento HDI negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "HDI") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3)) 
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3)) + scale_color_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 HumanDevelopmentIndexYears
 
@@ -199,8 +200,8 @@ Vediamo l'andamento dell'aspettativa di vita negli anni per ciascuno Stato:
 
 ```{r }
 
-LifeExpectancyYears <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Life_Expectancy,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento Life Expectancy negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Life Expectancy") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(20,90), breaks = seq(30,90,10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+LifeExpectancyYears <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Life_Expectancy,color=Region)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento Life Expectancy negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Life Expectancy") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12)) + scale_y_continuous(limits = c(20,90), breaks = seq(30,90,10)) + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3)) + scale_color_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 LifeExpectancyYears
 
@@ -340,8 +341,8 @@ I valori più bassi riguardanti gli **anni di scolarizzazione previsti** si regi
 La prima componente dell'istruzione è rappresentata dal numero medio di anni di scolarizzazione ricevuti dalla popolazione adulta (età >= 25)
 
 ```{r}
-AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Average_years_schooling,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni medi di scolarizzazione negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Average years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+ scale_y_continuous(limits = c(0,15), breaks = seq(0,15,5))  + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Average_years_schooling,color=Region)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni medi di scolarizzazione negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Average years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+ scale_y_continuous(limits = c(0,15), breaks = seq(0,15,5))  + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3)) + scale_color_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 AverageSchoolingYear
 
@@ -366,8 +367,8 @@ Anche qui l'Africa possiede il valore mediano più basso mentre l'Oceania possie
 ### Anni di scolarizzazione previsti
 ```{r}
 
-AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Expected_years_of_schooling,color=Entity)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni di scolarizzazione previsti negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Expected years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
-axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+ scale_y_continuous(limits = c(0,25), breaks = seq(0,25,5))  + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3))
+AverageSchoolingYear <- HumanDevelopmentIndex %>% ggplot(aes(x = Year,y = Expected_years_of_schooling,color=Region)) + geom_line(aes(group = Entity),size=.9,alpha=.6,show.legend = FALSE) + theme_classic() + labs(title = "Andamento anni di scolarizzazione previsti negli anni",subtitle = "Periodo 1990-2017", x = "Year", y = "Expected years of Schooling") + theme(axis.line = element_line(size = 1), plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x  = element_text(size =14 ),axis.title.y  = element_text(size =14),
+axis.text.x   = element_text(size =12), axis.text.y   = element_text(size =12))+ scale_y_continuous(limits = c(0,25), breaks = seq(0,25,5))  + scale_x_continuous(limits = c(1990,2017), breaks = seq(1990,2017,3)) + scale_color_manual(values = c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 AverageSchoolingYear
 ```
@@ -401,7 +402,7 @@ Al contrario l'HDI tiene conto più della qualità della vita rispetto alla capa
 Andamento HDI in base ai valori del GDP per capita
 
 ```{r}
-HDIvsGDP <- HumanDevelopmentIndex %>% ggplot(aes(x=GDP_per_capita,y = Human_Development_Index,size = Population,color = Region)) + geom_point(alpha=1/2) + labs(title = "HDI vs GDP",subtitle = "Periodo: 1990-2017", x = "GDP per capita", y = "HDI") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x = element_text(size =14),axis.title.y  = element_text(size =14),axis.text.x   = element_text(size =12), axis.text.y= element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10))+ scale_color_manual(values=c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
+HDIvsGDP <- HumanDevelopmentIndex %>% ggplot(aes(x=GDP_per_capita,y = Human_Development_Index,size = Population,color = Region)) + geom_point(alpha=1/2) + labs(title = "HDI vs GDP",subtitle = "Periodo: 1990-2017", x = "GDP per capita", y = "HDI",color="Continent:") + theme(plot.title = element_text(size=16),plot.subtitle = element_text(size=11),axis.title.x = element_text(size =14),axis.title.y  = element_text(size =14),axis.text.x   = element_text(size =12), axis.text.y= element_text(size =12)) + scale_y_continuous(limits = c(0.15,1), breaks = seq(0.20,1,0.10))+ scale_color_manual(values=c(Africa="darkgoldenrod2",Europe="cyan4",Americas="red3",Asia="palegreen3",Oceania="darkslateblue"))
 
 HDIvsGDP
 ```
